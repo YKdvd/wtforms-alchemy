@@ -3,6 +3,109 @@ Changelog
 
 Here you can see the full list of changes between each WTForms-Alchemy release.
 
+
+0.12.5 (2014-05-29)
+^^^^^^^^^^^^^^^^^^^
+
+- Added CountryField
+- Added CountryType to CountryField conversion
+- Fixed various issues with column aliases
+
+
+0.12.4 (2014-03-26)
+^^^^^^^^^^^^^^^^^^^
+
+- Added WeekDaysType to WeekDaysField conversion
+
+
+0.12.3 (2014-03-24)
+^^^^^^^^^^^^^^^^^^^
+
+- Fixed ChoiceType coercion for SelectFields
+
+
+0.12.2 (2014-02-20)
+^^^^^^^^^^^^^^^^^^^
+
+- New configuration option: attr_errors
+- Min and max info attributes generate NumberRange validator for Numeric, Float, IntRangeType and NumericRangeType columns
+
+
+0.12.1 (2014-02-13)
+^^^^^^^^^^^^^^^^^^^
+
+- Updated SQLAlchemy-i18n optional dependency to 0.8.2
+
+
+0.12.0 (2013-12-19)
+^^^^^^^^^^^^^^^^^^^
+
+- Added support for SQLAlchemy-Utils range types IntRange, NumericRange, DateRange and DateTimeRange
+- Deprecated support for NumberRangeField
+- Updated SQLAlchemy-Utils dependency to 0.23.1
+- Updated WTForms-Components dependency to 0.9.0
+
+
+0.11.0 (2013-12-19)
+^^^^^^^^^^^^^^^^^^^
+
+- Added configurable default validators
+- Fixed ModelFieldList processing
+
+
+0.10.0 (2013-12-16)
+^^^^^^^^^^^^^^^^^^^
+
+- Replaced assign_required configuration option with not_null_validator for more fine grained control of not null validation
+- Replaced not_null_str_validator with not_null_validator_type_map
+
+
+0.9.3 (2013-12-12)
+^^^^^^^^^^^^^^^^^^
+
+- Support for hybrid properties that return column properties
+- Better exception messages for properties that are not of type ColumnProperty
+- Support for class level type map customization
+
+
+0.9.2 (2013-12-11)
+^^^^^^^^^^^^^^^^^^
+
+- Smarter object value inspection for ModelFieldList
+- Changed ModelFieldList default population strategy to 'update' instead of 'replace'
+
+
+0.9.1 (2013-12-03)
+^^^^^^^^^^^^^^^^^^
+
+- Fixed property alias handling (issue #46)
+
+
+0.9.0 (2013-11-30)
+^^^^^^^^^^^^^^^^^^
+
+- Initial WTForms 2.0 support
+- New configuration options: not_null_validator, not_null_str_validator
+
+
+0.8.6 (2013-11-18)
+^^^^^^^^^^^^^^^^^^
+
+- Form fields now generated in class initialization time rather than on form object initialization
+
+
+0.8.5 (2013-11-13)
+^^^^^^^^^^^^^^^^^^
+
+- Added Numeric type scale to DecimalField places conversion
+
+
+0.8.4 (2013-11-11)
+^^^^^^^^^^^^^^^^^^
+
+- Declaration order of model fields now preserved in generated forms
+
+
 0.8.3 (2013-10-28)
 ^^^^^^^^^^^^^^^^^^
 

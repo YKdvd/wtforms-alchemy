@@ -2,8 +2,12 @@ import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy_utils import force_auto_coercion
 from wtforms_test import FormTestCase
 from wtforms_alchemy import ModelForm
+
+
+force_auto_coercion()
 
 
 class MultiDict(dict):
@@ -23,7 +27,7 @@ class ModelFormTestCase(FormTestCase):
         self.ModelTest = None
         self.form_class = None
 
-    def init(self, type_=sa.Unicode(255), **kwargs):
+    def init_model(self, type_=sa.Unicode(255), **kwargs):
         kwargs.setdefault('nullable', False)
 
         class ModelTest(self.base):
@@ -34,6 +38,9 @@ class ModelFormTestCase(FormTestCase):
             some_property = 'something'
 
         self.ModelTest = ModelTest
+
+    def init(self, type_=sa.Unicode(255), **kwargs):
+        self.init_model(type_=type_, **kwargs)
         self.init_form()
 
     def init_form(self):

@@ -29,7 +29,7 @@ PY3 = sys.version_info[0] == 3
 
 extras_require = {
     'test': [
-        'pytest==2.2.3',
+        'pytest>=2.3',
         'Pygments>=1.2',
         'Jinja2>=2.3',
         'docutils>=0.10',
@@ -39,13 +39,11 @@ extras_require = {
     ],
     'babel': ['Babel>=1.3'],
     'arrow': ['arrow>=0.3.4'],
-    'phone': [
-        # The phonenumbers library has a split for 2.x and 3.x support.
-        'phonenumbers3k==5.6b1' if PY3 else 'phonenumbers<5.6b1'
-    ],
+    'phone': ['phonenumbers>=5.9.2'],
+    'intervals': ['intervals>=0.2.0'],
     'password': ['passlib >= 1.6, < 2.0'],
     'color': ['colour>=0.0.4'],
-    'i18n': ['SQLAlchemy-i18n >= 0.6.3'],
+    'i18n': ['SQLAlchemy-i18n >= 0.8.2'],
     'ipaddress': ['ipaddr'] if not PY3 else [],
     'timezone': ['python-dateutil']
 }
@@ -59,7 +57,7 @@ for name, requirements in extras_require.items():
 
 setup(
     name='WTForms-Alchemy',
-    version='0.8.3',
+    version='0.12.5',
     url='https://github.com/kvesteri/wtforms-alchemy',
     license='BSD',
     author='Konsta Vesterinen',
@@ -73,8 +71,8 @@ setup(
     install_requires=[
         'SQLAlchemy>=0.8.0',
         'WTForms>=1.0.4',
-        'WTForms-Components>=0.8.0',
-        'SQLAlchemy-Utils>=0.19.0',
+        'WTForms-Components>=0.9.2',
+        'SQLAlchemy-Utils>=0.23.1',
         'six>=1.4.1',
         'ordereddict>=1.1'
         if sys.version_info[0] == 2 and sys.version_info[1] < 7 else '',

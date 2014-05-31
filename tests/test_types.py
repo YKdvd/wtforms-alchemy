@@ -15,30 +15,41 @@ from wtforms.validators import Length
 from sqlalchemy_utils import (
     ChoiceType,
     ColorType,
+    CountryType,
+    DateRangeType,
+    DateTimeRangeType,
     EmailType,
-    NumberRangeType,
+    IntRangeType,
+    NumericRangeType,
     PasswordType,
     PhoneNumberType,
-    UUIDType
+    UUIDType,
 )
-from sqlalchemy_utils.types import arrow, phone_number
-from wtforms_components import (
+from sqlalchemy_utils.types import arrow, phone_number, WeekDaysType
+from wtforms_components import Email
+from wtforms_components.fields import (
     ColorField,
     DateField,
     DateTimeField,
     DecimalField,
-    Email,
     EmailField,
     IntegerField,
-    NumberRangeField,
+    IntIntervalField,
+    DecimalIntervalField,
+    DateIntervalField,
+    DateTimeIntervalField,
     StringField,
     TimeField,
 )
+from wtforms_components.fields.weekdays import WeekDaysField
 from wtforms_alchemy import (
+    ModelForm,
     SelectField,
     UnknownTypeException,
+    CountryField,
     null_or_unicode
 )
+from wtforms_alchemy.utils import ClassMap
 from wtforms_components import PhoneNumberField
 from tests import ModelFormTestCase
 
@@ -110,6 +121,11 @@ class TestModelColumnToFormFieldTypeConversion(ModelFormTestCase):
     def test_numeric_converts_to_decimal_field(self):
         self.init(type_=sa.Numeric)
         self.assert_type('test_column', DecimalField)
+
+    def test_numeric_scale_converts_to_decimal_field_scale(self):
+        self.init(type_=sa.Numeric(scale=4))
+        form = self.form_class()
+        assert form.test_column.places == 4
 
     def test_custom_numeric_converts_to_decimal_field(self):
         self.init(type_=CustomNumericType)
@@ -184,9 +200,12 @@ class TestModelColumnToFormFieldTypeConversion(ModelFormTestCase):
         for validator in field.validators:
             assert validator.__class__ != Length
 
-    def test_number_range_converts_to_number_range_field(self):
-        self.init(type_=NumberRangeType)
-        self.assert_type('test_column', NumberRangeField)
+    @mark.parametrize(('type', 'field'), (
+        (IntRangeType, IntIntervalField),
+    ))
+    def test_range_type_conversion(self, type, field):
+        self.init(type_=type)
+        self.assert_type('test_column', field)
 
     @mark.xfail('passlib is None')
     def test_password_type_converts_to_password_field(self):
@@ -210,8 +229,45 @@ class TestModelColumnToFormFieldTypeConversion(ModelFormTestCase):
         self.init(type_=EmailType)
         self.assert_type('test_column', EmailField)
 
+    def test_country_type_converts_to_country_field(self):
+        self.init(type_=CountryType)
+        self.assert_type('test_column', CountryField)
+
     def test_choice_type_converts_to_select_field(self):
         choices = [(u'1', u'choice 1'), (u'2', u'choice 2')]
         self.init(type_=ChoiceType(choices))
         self.assert_type('test_column', SelectField)
         assert self.form_class().test_column.choices == choices
+
+    def test_choice_type_uses_custom_coerce_func(self):
+        choices = [(u'1', u'choice 1'), (u'2', u'choice 2')]
+        self.init(type_=ChoiceType(choices))
+        self.assert_type('test_column', SelectField)
+        model = self.ModelTest(test_column=u'2')
+        form = self.form_class(obj=model)
+        assert '<option selected value="2">' in str(form.test_column)
+
+
+class TestWeekDaysTypeConversion(ModelFormTestCase):
+    dns = 'postgres://postgres@localhost/wtforms_alchemy_test'
+
+    def test_weekdays_type_converts_to_weekdays_field(self):
+        self.init(type_=WeekDaysType)
+        self.assert_type('test_column', WeekDaysField)
+
+
+class TestCustomTypeMap(ModelFormTestCase):
+    def test_override_type_map_on_class_level(self):
+        class ModelTest(self.base):
+            __tablename__ = 'model_test'
+            id = sa.Column(sa.Integer, primary_key=True)
+            test_column = sa.Column(sa.Unicode(255), nullable=False)
+
+        class ModelTestForm(ModelForm):
+            class Meta:
+                model = ModelTest
+                not_null_validator = None
+                type_map = ClassMap({sa.Unicode: TextAreaField})
+
+        form = ModelTestForm()
+        assert isinstance(form.test_column, TextAreaField)

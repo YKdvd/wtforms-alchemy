@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from wtforms.fields import IntegerField
 from wtforms.validators import Email
 from wtforms_alchemy import (
-    InvalidAttributeException, ModelForm
+    AttributeTypeException, InvalidAttributeException, ModelForm
 )
 from tests import ModelFormTestCase, MultiDict
 
@@ -15,7 +15,14 @@ class UnknownType(sa.types.UserDefinedType):
 
 class TestModelFormConfiguration(ModelFormTestCase):
     def test_skip_unknown_types(self):
-        self.init(type_=UnknownType)
+        class ModelTest(self.base):
+            __tablename__ = 'model_test'
+            query = None
+            id = sa.Column(sa.Integer, primary_key=True)
+            test_column = sa.Column(UnknownType)
+            some_property = 'something'
+
+        self.ModelTest = ModelTest
 
         class ModelTestForm(ModelForm):
             class Meta:
@@ -26,7 +33,7 @@ class TestModelFormConfiguration(ModelFormTestCase):
         assert not self.has_field('test_column')
 
     def test_supports_field_exclusion(self):
-        self.init()
+        self.init_model()
 
         class ModelTestForm(ModelForm):
             class Meta:
@@ -37,26 +44,49 @@ class TestModelFormConfiguration(ModelFormTestCase):
         assert not self.has_field('test_column')
 
     def test_throws_exception_for_unknown_excluded_column(self):
-        self.init()
+        self.init_model()
+
+        with raises(InvalidAttributeException):
+            class ModelTestForm(ModelForm):
+                class Meta:
+                    model = self.ModelTest
+                    exclude = ['some_unknown_column']
+
+    def test_invalid_exclude_with_attr_errors_as_false(self):
+        self.init_model()
 
         class ModelTestForm(ModelForm):
             class Meta:
                 model = self.ModelTest
+                attr_errors = False
+                exclude = ['some_unknown_column']
+
+    def test_throws_exception_for_unknown_included_column(self):
+        self.init_model()
+
+        with raises(InvalidAttributeException):
+            class ModelTestForm(ModelForm):
+                class Meta:
+                    model = self.ModelTest
+                    include = ['some_unknown_column']
+
+    def test_invalid_include_with_attr_errors_as_false(self):
+        self.init_model()
+
+        class ModelTestForm(ModelForm):
+            class Meta:
+                model = self.ModelTest
+                attr_errors = False
                 include = ['some_unknown_column']
 
-        with raises(InvalidAttributeException):
-            self.form_class = ModelTestForm()
-
     def test_throws_exception_for_non_column_fields(self):
-        self.init()
+        self.init_model()
 
-        class ModelTestForm(ModelForm):
-            class Meta:
-                model = self.ModelTest
-                include = ['some_property']
-
-        with raises(InvalidAttributeException):
-            self.form_class = ModelTestForm()
+        with raises(AttributeTypeException):
+            class ModelTestForm(ModelForm):
+                class Meta:
+                    model = self.ModelTest
+                    include = ['some_property']
 
     def test_supports_field_inclusion(self):
         self.init()
@@ -180,6 +210,24 @@ class TestModelFormConfiguration(ModelFormTestCase):
                 only = ['test_column']
                 strip_string_fields = True
 
-        form = ModelTestForm()
+        ModelTestForm()
 
+    def test_class_meta_regression(self):
+        self.init()
 
+        class SomeForm(ModelForm):
+            class Meta:
+                model = self.ModelTest
+                foo = 9
+
+        class OtherForm(SomeForm):
+            class Meta:
+                pass
+
+        assert issubclass(OtherForm.Meta, SomeForm.Meta)
+        form = OtherForm()
+
+        # Create a side effect on the base meta.
+        assert form.Meta.foo == 9
+        SomeForm.Meta.foo = 12
+        assert form.Meta.foo == 12

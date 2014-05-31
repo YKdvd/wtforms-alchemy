@@ -1,5 +1,12 @@
+from distutils.version import LooseVersion
+from pytest import raises
+import wtforms
 from wtforms import Form
-from wtforms_alchemy import model_form_factory, FormGenerator
+from wtforms_alchemy import (
+    model_form_factory,
+    FormGenerator,
+    UnknownConfigurationOption
+)
 from tests import ModelFormTestCase
 
 
@@ -11,7 +18,6 @@ class TestModelFormFactory(ModelFormTestCase):
             pass
 
         defaults = {
-            'assign_required': False,
             'all_fields_optional': True,
             'only_indexed_fields': True,
             'include_primary_keys': True,
@@ -26,6 +32,18 @@ class TestModelFormFactory(ModelFormTestCase):
         for key, value in defaults.items():
             assert getattr(ModelForm.Meta, key) == value
 
+    def test_throws_exception_for_unknown_configuration_option(self):
+        self.init()
+
+        class SomeForm(Form):
+            pass
+
+        defaults = {
+            'unknown': 'something'
+        }
+        with raises(UnknownConfigurationOption):
+            model_form_factory(SomeForm, **defaults)
+
     def test_supports_custom_base_class_with_model_form_factory(self):
         self.init()
 
@@ -37,3 +55,35 @@ class TestModelFormFactory(ModelFormTestCase):
                 model = self.ModelTest
 
         assert isinstance(TestCustomBase(), SomeForm)
+
+    def test_class_meta_wtforms2(self):
+        if LooseVersion(wtforms.__version__) < LooseVersion('2'):
+            return  # skip test for wtforms < 2
+
+        self.init()
+
+        class SomeForm(Form):
+            class Meta:
+                locales = ['fr']
+                foo = 9
+
+        class OtherForm(SomeForm):
+            class Meta:
+                pass
+
+        class TestCustomBase(model_form_factory(SomeForm)):
+            class Meta:
+                model = self.ModelTest
+
+        form = TestCustomBase()
+        other_form = OtherForm()
+        assert isinstance(form.meta, wtforms.meta.DefaultMeta)
+        assert form.meta.locales == ['fr']
+        assert hasattr(form.meta, 'model')
+        assert hasattr(form.meta, 'csrf')
+
+        assert form.meta.foo == 9
+        # Create a side effect on the base meta.
+        SomeForm.Meta.foo = 12
+        assert other_form.meta.foo == 12
+        assert form.meta.foo == 12

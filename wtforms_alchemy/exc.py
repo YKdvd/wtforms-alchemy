@@ -16,5 +16,19 @@ class InvalidAttributeException(Exception):
         )
 
 
-class UnknownIdentityException(Exception):
-    pass
+class AttributeTypeException(Exception):
+    def __init__(self, attr_name):
+        Exception.__init__(
+            self,
+            "Model attribute '%s' is not of type ColumnProperty." %
+            attr_name
+        )
+
+
+class UnknownConfigurationOption(Exception):
+    def __init__(self, option):
+        Exception.__init__(
+            self,
+            "Unknown configuration option '%s' given." %
+            option
+        )

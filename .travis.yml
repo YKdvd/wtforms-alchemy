@@ -7,7 +7,16 @@ python:
   - 2.6
   - 2.7
   - 3.3
+
+env:
+  matrix:
+    - WTFORMS=1.0.4
+    - WTFORMS=1.0.5
+    - WTFORMS=2.0
+
 install:
+  - pip install WTForms==$WTFORMS
   - pip install -e ".[test]"
+
 script:
   - python setup.py test
